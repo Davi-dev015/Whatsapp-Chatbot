@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar QR Code</title>
+    <style>
+        /* Estilos gerais */
+        body {
+            background-color: #F4C27F;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 250px;
+        }
+
+        /* Texto central */
+        h1 {
+            font-size: 22px;
+            color: black;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Botão estilizado */
+        .botao {
+            background-color: white;
+            border: 2px solid black;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* Efeito hover no botão */
+        .botao:hover {
+            background-color: lightgray;
+        }
+
+        /* Área onde o QR code será gerado */
+        #qrcode {
+            margin-top: 20px;
+        }
+    </style>
+    <!-- Incluindo a biblioteca QRCode.js -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+
+    <!-- Logo -->
+    <img src="./Imagens_robo/carmel_cumbuco-removebg-preview.png" alt="Carmel Cumbuco Resort" class="logo">
+
+    <!-- Texto -->
+    <h1>Clique aqui 👇😊</h1>
+
+    <!-- Botão -->
+    <button class="botao" id="gerarQrCodeBtn">Gerar QR Code</button>
+    <br>
+    <img id="qrcode" style="display: none; margin-top: 20px;">
+
+    <script>
+        document.getElementById("gerarQrCodeBtn").addEventListener("click", function() {
+            fetch('http://localhost:3000/qrcode')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.qr) {
+                        const qrImg = document.getElementById("qrcode");
+                        qrImg.src = data.qr;
+                        qrImg.style.display = "block"; // Mostrar a imagem
+                    } else {
+                        alert("QR Code ainda não gerado.");
+                    }
+                })
+                .catch(error => console.error("Erro ao buscar QR Code:", error));
+        });
+    </script>
+</body>
+</html>
