@@ -1,0 +1,61 @@
+        /* Estilos gerais */
+        body {
+            background-color: #F4C27F;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 250px;
+        }
+
+        /* Texto central */
+        h1 {
+            font-size: 22px;
+            color: black;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Botão estilizado */
+        .botao {
+            background-color: white;
+            border: 2px solid black;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* Efeito hover no botão */
+        .botao:hover {
+            background-color: lightgray;
+        }
+
+        /* Área onde o QR code será gerado */
+        #qrcode {
+            margin-top: 20px;
+        }
+        #result{
+            margin-top: 20px;
+        }
+        .verde {
+            color: rgb(3, 194, 3);
+            font-weight: bold;
+        }
+        #notificacoesContainer{
+            display: none;
+            background: white;
+            padding: 10px;
+        }
+        

@@ -10,12 +10,13 @@ const aplicativo = express();
 const port = 3000;
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const notificacoes = []
 
 // Script para uso do Electron
 function createWindow() {
     const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1280,
+        height: 720,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -26,7 +27,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
     // Abre o DevTools (opcional)
-    // mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);
@@ -79,7 +80,10 @@ aplicativo.get('/qrcode', async (req, res) => {
     try {
         // Gerar a imagem do QR Code
         const qrCodeImage = await QRCode.toDataURL(qrCodeData);
-        res.json({ qr: qrCodeImage });
+        const pendingRequests = Object.values(userState).includes('menu_solic1')
+        res.json({ qr: qrCodeImage,
+            needAlert: pendingRequests
+         });
     } catch (error) {
         console.error('Erro ao gerar QR Code:', error);
         res.status(500).json({ error: 'Erro ao gerar QR Code' });
@@ -90,10 +94,21 @@ aplicativo.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
 });
 
+let whatsappConnected = false;
 // Confirmação de conexão
 client.on('ready', () => {
     console.log('Tudo certo! WhatsApp conectado.');
+    whatsappConnected = true
 });
+
+aplicativo.get('/status', (req, res) => {
+    res.json({ conectado: whatsappConnected });
+});
+
+// Rota para buscar notificações
+aplicativo.get('/notificacoes', (req, res) => {
+    res.json(notificacoes);
+})
 
 // Inicializa o cliente
 client.initialize();
@@ -104,7 +119,12 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 // Manipulação de mensagens
 client.on('message', async (msg) => {
     const userId = msg.from;
-
+     // ✅ Permitido apenas para esse número
+     /*const numeroPermitido = '558599984343@c.us'; // Formato correto do número
+     if (userId !== numeroPermitido) {
+        console.log(`Mensagem ignorada de ${userId} (número não autorizado)`);
+        return; // Ignora qualquer outro número
+     }*/
     if (!userState[userId]) {
         userState[userId] = 'início';
     }
@@ -353,7 +373,7 @@ if (userState[userId] === 'menu_1' && msg.body === '1') {
     }
         if (userState[userId] === 'menu_solic') {
             const chat = await msg.getChat();
-            await delay(1000); //Delay de 3000 milisegundos mais conhecido como 3 segundos
+            await delay(1000);
             await chat.sendStateTyping(); // Simulando Digitação
             await delay(1000);
             await client.sendMessage(msg.from, `Tudo bem, por favor, informe o que precisa.`);
@@ -363,13 +383,19 @@ if (userState[userId] === 'menu_1' && msg.body === '1') {
     
         if (userState[userId] === 'menu_solic1') {
             const chat = await msg.getChat();
-            await delay(1000); //Delay de 3000 milisegundos mais conhecido como 3 segundos
+            await delay(1000); 
             await chat.sendStateTyping(); // Simulando Digitação
             await delay(1000);
             await client.sendMessage(msg.from, `Entendido, peço que aguarde um momento, que nossa equipe irá atendê-lo o mais rápido possível ⏳🤝.
                 \nSe precisar de mais informações, digite 1.`);
             userState[userId] = 'menu_fim';
+            notificacoes.push({
+                quarto: 'menu_solic',
+                tipo: 'Limpeza',
+                mensagem: msg.body
+            });
             return;
+            
     }
 
     if (userState[userId] === 'menu_3' && msg.body === '2') {
@@ -399,6 +425,11 @@ if (userState[userId] === 'menu_1' && msg.body === '1') {
         await client.sendMessage(msg.from, `Entendido, por favor aguarde um momento que já atenderemos sua solicitação ⏳🤝.
             \nSe precisar de mais informações, digite 1.`);
         userState[userId] = 'menu_fim';
+        notificacoes.push({
+            quarto: 'menu_limpeza',
+            tipo: 'Limpeza',
+            mensagem: msg.body
+        });
         return;
     }
     if (userState[userId] === 'menu_3' && msg.body === '3'){
@@ -416,6 +447,11 @@ if (userState[userId] === 'menu_1' && msg.body === '1') {
         await chat.sendStateTyping();
         await delay(1000);
         await client.sendMessage(msg.from, `Ok! Peço que por favor aguarde um momento enquanto analisamos a possibilidade ⏳🤝`);
+        notificacoes.push({
+            quarto: 'menu_early',
+            tipo: 'Limpeza',
+            mensagem: msg.body
+        });
         return;
     }
 // Fim das opções do menu_3, início das opções do menu_4
